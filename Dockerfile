@@ -1,65 +1,92 @@
-# Use multi-stage build
-FROM node:16 as node-build
+# syntax=docker/dockerfile:1.7
 
-WORKDIR /app
+FROM node:18-bookworm-slim AS search-build
 
-# Copy package.json, package-lock.json, and webpack configuration
-COPY attack-search/package*.json ./attack-search/
-COPY attack-search/webpack.config.cjs ./attack-search/
+WORKDIR /src/attack-search
 
-# Copy src/ folder with all subdirectories
-COPY attack-search/src ./attack-search/src
+COPY attack-search/package*.json ./
+RUN npm ci
 
-# Generate the webpack bundle containing the search service
-RUN cd attack-search && \
-    npm ci && \
-    npm run build
+COPY attack-search/webpack.config.cjs ./
+COPY attack-search/src ./src
+RUN npm run build
 
-# Use the official Python image as the base image
-FROM python:3.13-slim-bullseye as python-build
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
+FROM python:3.13-slim-bookworm AS site-build
 
-# Install dependencies
-RUN apt-get update --fix-missing && \
-    apt-get upgrade -y && \
-    apt-get install -y -qq --no-install-recommends locales sudo git apt-transport-https ca-certificates && \
-    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
-    locale-gen && \
-    update-ca-certificates
+ARG PELICAN_SITEURL=""
+ARG BANNER_ENABLED="true"
+ARG BANNER_MESSAGE=""
+ARG INCLUDE_OSANO="false"
+ARG GOOGLE_ANALYTICS=""
+ARG GOOGLE_SITE_VERIFICATION=""
+ARG UPDATE_ATTACK_EXTRAS="resources blog stixtests benefactors versions"
+ARG VERSION_ARCHIVE_DIR="/opt/attack-version-archives"
+ARG STIX_LOCATION_ENTERPRISE="https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
+ARG STIX_LOCATION_MOBILE="https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json"
+ARG STIX_LOCATION_ICS="https://raw.githubusercontent.com/mitre/cti/master/ics-attack/ics-attack.json"
+ARG WORKBENCH_USER=""
 
-WORKDIR /home/attackuser/attack-website
+ENV PELICAN_SITEURL=${PELICAN_SITEURL} \
+    BANNER_ENABLED=${BANNER_ENABLED} \
+    BANNER_MESSAGE=${BANNER_MESSAGE} \
+    INCLUDE_OSANO=${INCLUDE_OSANO} \
+    GOOGLE_ANALYTICS=${GOOGLE_ANALYTICS} \
+    GOOGLE_SITE_VERIFICATION=${GOOGLE_SITE_VERIFICATION} \
+    UPDATE_ATTACK_EXTRAS=${UPDATE_ATTACK_EXTRAS} \
+    VERSION_ARCHIVE_DIR=${VERSION_ARCHIVE_DIR} \
+    STIX_LOCATION_ENTERPRISE=${STIX_LOCATION_ENTERPRISE} \
+    STIX_LOCATION_MOBILE=${STIX_LOCATION_MOBILE} \
+    STIX_LOCATION_ICS=${STIX_LOCATION_ICS} \
+    REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Copy the source code
-COPY . .
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates git \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install all Python dependencies
-RUN python3 -m pip install --no-cache-dir wheel && \
-    python3 -m pip install --no-cache-dir -r requirements.txt
+WORKDIR /src/attack-website
 
-# Build the website
-RUN python3 update-attack.py --no-test-exitstatus
+COPY requirements.txt ./
+RUN python3 -m pip install --no-cache-dir wheel \
+    && python3 -m pip install --no-cache-dir -r requirements.txt
 
-# Copy the search service webpack bundle from the node-build stage
-COPY --from=node-build /app/attack-search/dist/search_bundle.js output/theme/scripts/search_bundle.js
+COPY . ./
 
-# Nginx stage
-FROM nginx:stable-alpine as production-stage
+# The generator copies theme assets into output/, so place the generated search bundle
+# in the theme before running it. This mirrors the production GitLab pipeline.
+COPY --from=search-build /src/attack-search/dist/search_bundle.js attack-theme/static/scripts/search_bundle.js
 
-COPY --from=python-build /home/attackuser/attack-website/output /var/www/html
+# A Workbench API key and internal CA are optional for local/upstream builds. When supplied
+# as BuildKit secrets, they are available only to this command and are not persisted in an image layer.
+RUN --mount=type=secret,id=workbench_api_key,required=false \
+    --mount=type=secret,id=internal_ca,target=/usr/local/share/ca-certificates/internal-ca.crt,required=false \
+    if [ -f /usr/local/share/ca-certificates/internal-ca.crt ]; then \
+        update-ca-certificates; \
+    fi; \
+    if [ -f /run/secrets/workbench_api_key ]; then \
+        export WORKBENCH_API_KEY="$(cat /run/secrets/workbench_api_key)"; \
+        export WORKBENCH_USER; \
+    fi; \
+    mkdir -p "${VERSION_ARCHIVE_DIR}"; \
+    python3 update-attack.py --attack-brand --extras ${UPDATE_ATTACK_EXTRAS} --no-test-exitstatus --version-archive-dir "${VERSION_ARCHIVE_DIR}"
+
+
+FROM nginx:stable-alpine AS production
+
+COPY --from=site-build /src/attack-website/output /var/www/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Label metadata
-LABEL name="attack-website" \
-    description="Dockerfile for the ATT&CK Website" \
-    usage="https://github.com/mitre-attack/attack-website/blob/master/README.md#install-and-build" \
-    url="https://attack.mitre.org/" \
-    vcs-url="https://github.com/mitre-attack/attack-website" \
-    vendor="MITRE ATT&CK" \
-    maintainer="attack@mitre.org"
+LABEL org.opencontainers.image.title="ATT&CK Website" \
+    org.opencontainers.image.description="Static ATT&CK Website served by Nginx" \
+    org.opencontainers.image.source="https://github.com/mitre-attack/attack-website" \
+    org.opencontainers.image.url="https://attack.mitre.org/" \
+    org.opencontainers.image.vendor="MITRE ATT&CK"
 
 EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -q -O /dev/null http://127.0.0.1/ || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
