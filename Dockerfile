@@ -43,7 +43,6 @@ ENV PELICAN_SITEURL=${PELICAN_SITEURL} \
     STIX_LOCATION_ENTERPRISE=${STIX_LOCATION_ENTERPRISE} \
     STIX_LOCATION_MOBILE=${STIX_LOCATION_MOBILE} \
     STIX_LOCATION_ICS=${STIX_LOCATION_ICS} \
-    REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
@@ -56,7 +55,11 @@ WORKDIR /src/attack-website
 
 COPY requirements.txt ./
 RUN python3 -m pip install --no-cache-dir wheel \
-    && python3 -m pip install --no-cache-dir -r requirements.txt
+    && python3 -m pip install --no-cache-dir -r requirements.txt \
+    # requests and certifi use their own CA bundle. Install MITRE trust there after
+    # dependencies are present, and do not override it with REQUESTS_CA_BUNDLE.
+    && curl -ksSL https://gitlab.mitre.org/mitre-scripts/mitre-pki/raw/master/tool_scripts/install_certs.sh \
+        | MODE=python PYTHON=python3 sh
 
 COPY . ./
 
