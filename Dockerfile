@@ -32,7 +32,6 @@ ARG WORKBENCH_USER=""
 ENV PELICAN_SITEURL=${PELICAN_SITEURL} \
     BANNER_ENABLED=${BANNER_ENABLED} \
     BANNER_MESSAGE=${BANNER_MESSAGE} \
-    INCLUDE_OSANO=${INCLUDE_OSANO} \
     GOOGLE_ANALYTICS=${GOOGLE_ANALYTICS} \
     GOOGLE_SITE_VERIFICATION=${GOOGLE_SITE_VERIFICATION} \
     UPDATE_ATTACK_EXTRAS=${UPDATE_ATTACK_EXTRAS} \
@@ -78,6 +77,7 @@ RUN --mount=type=secret,id=workbench_api_key,required=false \
         export WORKBENCH_API_KEY="$(cat /run/secrets/workbench_api_key)"; \
         export WORKBENCH_USER; \
     fi; \
+    if [ "${INCLUDE_OSANO}" = "true" ]; then export INCLUDE_OSANO; else unset INCLUDE_OSANO; fi; \
     mkdir -p "${VERSION_ARCHIVE_DIR}"; \
     python3 update-attack.py --attack-brand --extras ${UPDATE_ATTACK_EXTRAS} --no-test-exitstatus --version-archive-dir "${VERSION_ARCHIVE_DIR}"
 
