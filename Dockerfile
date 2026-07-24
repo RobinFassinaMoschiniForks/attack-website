@@ -12,7 +12,10 @@ COPY attack-search/src ./src
 RUN npm run build
 
 
-FROM python:3.13-slim-bookworm AS site-build
+# Python 3.13 enables strict X.509 chain validation by default. The enterprise
+# TLS interception chain is trusted but does not meet that new strict profile.
+# Keep normal certificate verification with the compatible Python 3.12 runtime.
+FROM python:3.12-slim-bookworm AS site-build
 
 ARG PELICAN_SITEURL=""
 ARG BANNER_ENABLED="true"
