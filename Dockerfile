@@ -21,7 +21,9 @@ ARG INCLUDE_OSANO="false"
 ARG GOOGLE_ANALYTICS=""
 ARG GOOGLE_SITE_VERIFICATION=""
 ARG UPDATE_ATTACK_EXTRAS="resources blog stixtests benefactors versions"
-ARG VERSION_ARCHIVE_DIR="/opt/attack-version-archives"
+ARG VERSION_ARCHIVE_DIR="/var/cache/attack-website/version-archives"
+ARG ATTACK_RELEASES_DIR="/var/cache/attack-website/attack-releases"
+ARG DIFF_STIX_VERSION="v19.0"
 ARG STIX_LOCATION_ENTERPRISE="https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
 ARG STIX_LOCATION_MOBILE="https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json"
 ARG STIX_LOCATION_ICS="https://raw.githubusercontent.com/mitre/cti/master/ics-attack/ics-attack.json"
@@ -35,6 +37,9 @@ ENV PELICAN_SITEURL=${PELICAN_SITEURL} \
     GOOGLE_SITE_VERIFICATION=${GOOGLE_SITE_VERIFICATION} \
     UPDATE_ATTACK_EXTRAS=${UPDATE_ATTACK_EXTRAS} \
     VERSION_ARCHIVE_DIR=${VERSION_ARCHIVE_DIR} \
+    ATTACK_RELEASES_DIR=${ATTACK_RELEASES_DIR} \
+    DIFF_STIX_VERSION=${DIFF_STIX_VERSION} \
+    ATTACK_STIX_CACHE_DIR=/var/cache/attack-website/stix \
     STIX_LOCATION_ENTERPRISE=${STIX_LOCATION_ENTERPRISE} \
     STIX_LOCATION_MOBILE=${STIX_LOCATION_MOBILE} \
     STIX_LOCATION_ICS=${STIX_LOCATION_ICS} \
@@ -58,10 +63,16 @@ COPY . ./
 # in the theme before running it. This mirrors the production GitLab pipeline.
 COPY --from=search-build /src/attack-search/dist/search_bundle.js attack-theme/static/scripts/search_bundle.js
 
+# Preserve the legacy STIX release input for the generated changelog. The BuildKit cache
+# keeps these downloaded artifacts on the site host without adding them to the runtime image.
+RUN --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
+    download_attack_stix --download-dir "${ATTACK_RELEASES_DIR}" --all --stix21
+
 # A Workbench API key and internal CA are optional for local/upstream builds. When supplied
 # as BuildKit secrets, they are available only to this command and are not persisted in an image layer.
 RUN --mount=type=secret,id=workbench_api_key,required=false \
     --mount=type=secret,id=internal_ca,target=/usr/local/share/ca-certificates/internal-ca.crt,required=false \
+    --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
     if [ -f /usr/local/share/ca-certificates/internal-ca.crt ]; then \
         update-ca-certificates; \
     fi; \
@@ -71,6 +82,28 @@ RUN --mount=type=secret,id=workbench_api_key,required=false \
     fi; \
     mkdir -p "${VERSION_ARCHIVE_DIR}"; \
     python3 update-attack.py --attack-brand --extras ${UPDATE_ATTACK_EXTRAS} --no-test-exitstatus --version-archive-dir "${VERSION_ARCHIVE_DIR}"
+
+# Preserve the non-SSH report phase from legacy CI: native website reports, STIX diff output,
+# and the combined report. The data-quality reports that require Workbench SSH are omitted.
+RUN --mount=type=secret,id=attack_update_scripts_token,required=true \
+    --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
+    mkdir -p output/reports output/changes \
+    && cp reports/* output/reports/ \
+    && cp reports/tests.html output/ \
+    && diff_stix -v \
+        --old "${ATTACK_RELEASES_DIR}/stix-2.0/${DIFF_STIX_VERSION}/" \
+        --new output/stix/ \
+        --show-key \
+        --contributors \
+        --html-file output/changes/index.html \
+        --html-file-detailed output/changes/changelog-detailed.html \
+        --markdown-file output/changes/changelog.md \
+        --json-file output/changes/changelog.json \
+        --layers output/changes/layer-enterprise.json output/changes/layer-mobile.json output/changes/layer-ics.json \
+    && git clone "https://gitlab-ci-token:$(cat /run/secrets/attack_update_scripts_token)@gitlab.mitre.org/attack-strategy/attack_update_scripts.git" /tmp/attack_update_scripts \
+    && git -C /tmp/attack_update_scripts remote set-url origin https://gitlab.mitre.org/attack-strategy/attack_update_scripts.git \
+    && python3 -m pip install --no-cache-dir -r /tmp/attack_update_scripts/requirements.txt \
+    && python3 /tmp/attack_update_scripts/website-cicd/combine-test-reports.py --reports-dir output/reports/ --output-dir output/
 
 
 FROM nginx:stable-alpine AS production
