@@ -12,9 +12,6 @@ COPY attack-search/src ./src
 RUN npm run build
 
 
-# Python 3.13 enables strict X.509 chain validation by default. The enterprise
-# TLS interception chain is trusted but does not meet that new strict profile.
-# Keep normal certificate verification with the compatible Python 3.12 runtime.
 FROM python:3.12-slim-bookworm AS site-build
 
 ARG PELICAN_SITEURL=""
@@ -59,8 +56,6 @@ WORKDIR /src/attack-website
 COPY requirements.txt ./
 RUN python3 -m pip install --no-cache-dir wheel \
     && python3 -m pip install --no-cache-dir -r requirements.txt \
-    # requests and certifi use their own CA bundle. Install MITRE trust there after
-    # dependencies are present, and do not override it with REQUESTS_CA_BUNDLE.
     && curl -ksSL https://gitlab.mitre.org/mitre-scripts/mitre-pki/raw/master/tool_scripts/install_certs.sh \
         | MODE=python PYTHON=python3 sh
 
