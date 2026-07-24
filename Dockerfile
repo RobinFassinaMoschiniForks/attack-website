@@ -81,10 +81,7 @@ RUN --mount=type=secret,id=workbench_api_key,required=false \
     mkdir -p "${VERSION_ARCHIVE_DIR}"; \
     python3 update-attack.py --attack-brand --extras ${UPDATE_ATTACK_EXTRAS} --no-test-exitstatus --version-archive-dir "${VERSION_ARCHIVE_DIR}"
 
-# Preserve the non-SSH report phase from legacy CI: native website reports, STIX diff output,
-# and the combined report. The data-quality reports that require Workbench SSH are omitted.
-RUN --mount=type=secret,id=attack_update_scripts_token,required=true \
-    --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
+RUN --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
     mkdir -p output/reports output/changes \
     && cp reports/* output/reports/ \
     && cp reports/tests.html output/ \
@@ -97,11 +94,7 @@ RUN --mount=type=secret,id=attack_update_scripts_token,required=true \
         --html-file-detailed output/changes/changelog-detailed.html \
         --markdown-file output/changes/changelog.md \
         --json-file output/changes/changelog.json \
-        --layers output/changes/layer-enterprise.json output/changes/layer-mobile.json output/changes/layer-ics.json \
-    && git clone "https://gitlab-ci-token:$(cat /run/secrets/attack_update_scripts_token)@gitlab.mitre.org/attack-strategy/attack_update_scripts.git" /tmp/attack_update_scripts \
-    && git -C /tmp/attack_update_scripts remote set-url origin https://gitlab.mitre.org/attack-strategy/attack_update_scripts.git \
-    && python3 -m pip install --no-cache-dir -r /tmp/attack_update_scripts/requirements.txt \
-    && python3 /tmp/attack_update_scripts/website-cicd/combine-test-reports.py --reports-dir output/reports/ --output-dir output/
+        --layers output/changes/layer-enterprise.json output/changes/layer-mobile.json output/changes/layer-ics.json
 
 
 FROM nginx:stable-alpine AS production
