@@ -48,7 +48,8 @@ ENV PELICAN_SITEURL=${PELICAN_SITEURL} \
     PYTHONUNBUFFERED=1
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates git \
+    && apt-get install -y --no-install-recommends ca-certificates curl git \
+    && curl -ksSL https://gitlab.mitre.org/mitre-scripts/mitre-pki/raw/master/os_scripts/install_certs.sh | sh \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src/attack-website
@@ -68,14 +69,10 @@ COPY --from=search-build /src/attack-search/dist/search_bundle.js attack-theme/s
 RUN --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
     download_attack_stix --download-dir "${ATTACK_RELEASES_DIR}" --all --stix21
 
-# A Workbench API key and internal CA are optional for local/upstream builds. When supplied
-# as BuildKit secrets, they are available only to this command and are not persisted in an image layer.
+# A Workbench API key is optional for local/upstream builds. When supplied as a BuildKit secret,
+# it is available only to this command and is not persisted in an image layer.
 RUN --mount=type=secret,id=workbench_api_key,required=false \
-    --mount=type=secret,id=internal_ca,target=/usr/local/share/ca-certificates/internal-ca.crt,required=false \
     --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
-    if [ -f /usr/local/share/ca-certificates/internal-ca.crt ]; then \
-        update-ca-certificates; \
-    fi; \
     if [ -f /run/secrets/workbench_api_key ]; then \
         export WORKBENCH_API_KEY="$(cat /run/secrets/workbench_api_key)"; \
         export WORKBENCH_USER; \
