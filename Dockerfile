@@ -28,6 +28,8 @@ ARG STIX_LOCATION_ENTERPRISE="https://raw.githubusercontent.com/mitre/cti/master
 ARG STIX_LOCATION_MOBILE="https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json"
 ARG STIX_LOCATION_ICS="https://raw.githubusercontent.com/mitre/cti/master/ics-attack/ics-attack.json"
 ARG WORKBENCH_USER=""
+ARG OS_CA_TRUST_SETUP_COMMAND=":"
+ARG PYTHON_CA_TRUST_SETUP_COMMAND=":"
 
 ENV PELICAN_SITEURL=${PELICAN_SITEURL} \
     BANNER_ENABLED=${BANNER_ENABLED} \
@@ -47,7 +49,7 @@ ENV PELICAN_SITEURL=${PELICAN_SITEURL} \
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl git \
-    && curl -ksSL https://gitlab.mitre.org/mitre-scripts/mitre-pki/raw/master/os_scripts/install_certs.sh | sh \
+    && sh -ec "${OS_CA_TRUST_SETUP_COMMAND}" \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src/attack-website
@@ -55,8 +57,7 @@ WORKDIR /src/attack-website
 COPY requirements.txt ./
 RUN python3 -m pip install --no-cache-dir wheel \
     && python3 -m pip install --no-cache-dir -r requirements.txt \
-    && curl -ksSL https://gitlab.mitre.org/mitre-scripts/mitre-pki/raw/master/tool_scripts/install_certs.sh \
-        | MODE=python PYTHON=python3 sh
+    && sh -ec "${PYTHON_CA_TRUST_SETUP_COMMAND}"
 
 COPY . ./
 
