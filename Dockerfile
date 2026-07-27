@@ -12,7 +12,7 @@ COPY attack-search/src ./src
 RUN npm run build
 
 
-FROM python:3.12-slim-bookworm AS site-build
+FROM python:3.13-slim-bookworm AS site-build
 
 ARG PELICAN_SITEURL=""
 ARG BANNER_ENABLED="true"
