@@ -42,7 +42,6 @@ ENV PELICAN_SITEURL=${PELICAN_SITEURL} \
     VERSION_ARCHIVE_DIR=${VERSION_ARCHIVE_DIR} \
     ATTACK_RELEASES_DIR=${ATTACK_RELEASES_DIR} \
     DIFF_STIX_VERSION=${DIFF_STIX_VERSION} \
-    ATTACK_STIX_CACHE_DIR=/var/cache/attack-website/stix \
     STIX_LOCATION_ENTERPRISE=${STIX_LOCATION_ENTERPRISE} \
     STIX_LOCATION_MOBILE=${STIX_LOCATION_MOBILE} \
     STIX_LOCATION_ICS=${STIX_LOCATION_ICS} \
@@ -64,7 +63,7 @@ RUN python3 -m pip install --no-cache-dir wheel \
 COPY . ./
 
 # The generator copies theme assets into output/, so place the generated search bundle
-# in the theme before running it. This mirrors the production GitLab pipeline.
+# in the theme before running it.
 COPY --from=search-build /src/attack-search/dist/search_bundle.js attack-theme/static/scripts/search_bundle.js
 
 # Preserve the legacy STIX release input for the generated changelog. The BuildKit cache
