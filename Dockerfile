@@ -22,6 +22,7 @@ ARG GOOGLE_ANALYTICS=""
 ARG GOOGLE_SITE_VERIFICATION=""
 ARG ATTACK_BRAND="false"
 ARG UPDATE_ATTACK_EXTRAS=""
+ARG GENERATE_STIX_CHANGELOG="false"
 ARG VERSION_ARCHIVE_DIR="/var/cache/attack-website/version-archives"
 ARG ATTACK_RELEASES_DIR="/var/cache/attack-website/attack-releases"
 ARG DIFF_STIX_VERSION="v19.1"
@@ -66,11 +67,6 @@ COPY . ./
 # in the theme before running it.
 COPY --from=search-build /src/attack-search/dist/search_bundle.js attack-theme/static/scripts/search_bundle.js
 
-# Preserve the legacy STIX release input for the generated changelog. The BuildKit cache
-# keeps these downloaded artifacts on the site host without adding them to the runtime image.
-RUN --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
-    download_attack_stix --download-dir "${ATTACK_RELEASES_DIR}" --all --stix21
-
 # A Workbench API key is optional for local/upstream builds. When supplied as a BuildKit secret,
 # it is available only to this command and is not persisted in an image layer.
 RUN --mount=type=secret,id=workbench_api_key,required=false \
@@ -91,25 +87,35 @@ RUN --mount=type=secret,id=workbench_api_key,required=false \
     python3 update-attack.py "$@" --no-test-exitstatus \
         --version-archive-dir "${VERSION_ARCHIVE_DIR}"
 
+
+FROM site-build AS changelog-build
+
 RUN --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
-    mkdir -p output/reports output/changes \
-    && cp reports/* output/reports/ \
-    && cp reports/tests.html output/ \
-    && diff_stix -v \
-        --old "${ATTACK_RELEASES_DIR}/stix-2.0/${DIFF_STIX_VERSION}/" \
-        --new output/stix/ \
-        --show-key \
-        --contributors \
-        --html-file output/changes/index.html \
-        --html-file-detailed output/changes/changelog-detailed.html \
-        --markdown-file output/changes/changelog.md \
-        --json-file output/changes/changelog.json \
-        --layers output/changes/layer-enterprise.json output/changes/layer-mobile.json output/changes/layer-ics.json
+    if [ "${GENERATE_STIX_CHANGELOG}" = "true" ]; then \
+        download_attack_stix --download-dir "${ATTACK_RELEASES_DIR}" --all --stix21; \
+    fi
+
+RUN --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
+    if [ "${GENERATE_STIX_CHANGELOG}" = "true" ]; then \
+        mkdir -p output/reports output/changes \
+        && cp reports/* output/reports/ \
+        && cp reports/tests.html output/ \
+        && diff_stix -v \
+            --old "${ATTACK_RELEASES_DIR}/stix-2.0/${DIFF_STIX_VERSION}/" \
+            --new output/stix/ \
+            --show-key \
+            --contributors \
+            --html-file output/changes/index.html \
+            --html-file-detailed output/changes/changelog-detailed.html \
+            --markdown-file output/changes/changelog.md \
+            --json-file output/changes/changelog.json \
+            --layers output/changes/layer-enterprise.json output/changes/layer-mobile.json output/changes/layer-ics.json; \
+    fi
 
 
 FROM nginx:stable-alpine AS production
 
-COPY --from=site-build /src/attack-website/output /var/www/html
+COPY --from=changelog-build /src/attack-website/output /var/www/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 LABEL org.opencontainers.image.title="ATT&CK Website" \
