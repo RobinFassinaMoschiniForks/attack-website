@@ -20,6 +20,7 @@ ARG BANNER_MESSAGE=""
 ARG INCLUDE_OSANO="false"
 ARG GOOGLE_ANALYTICS=""
 ARG GOOGLE_SITE_VERIFICATION=""
+ARG ATTACK_BRAND="false"
 ARG UPDATE_ATTACK_EXTRAS=""
 ARG VERSION_ARCHIVE_DIR="/var/cache/attack-website/version-archives"
 ARG ATTACK_RELEASES_DIR="/var/cache/attack-website/attack-releases"
@@ -80,12 +81,14 @@ RUN --mount=type=secret,id=workbench_api_key,required=false \
     fi; \
     if [ "${INCLUDE_OSANO}" = "true" ]; then export INCLUDE_OSANO; else unset INCLUDE_OSANO; fi; \
     mkdir -p "${VERSION_ARCHIVE_DIR}"; \
-    if [ -n "${UPDATE_ATTACK_EXTRAS}" ]; then \
-        set -- --extras ${UPDATE_ATTACK_EXTRAS}; \
-    else \
-        set --; \
+    set --; \
+    if [ "${ATTACK_BRAND}" = "true" ]; then \
+        set -- "$@" --attack-brand; \
     fi; \
-    python3 update-attack.py --attack-brand "$@" --no-test-exitstatus \
+    if [ -n "${UPDATE_ATTACK_EXTRAS}" ]; then \
+        set -- "$@" --extras ${UPDATE_ATTACK_EXTRAS}; \
+    fi; \
+    python3 update-attack.py "$@" --no-test-exitstatus \
         --version-archive-dir "${VERSION_ARCHIVE_DIR}"
 
 RUN --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
