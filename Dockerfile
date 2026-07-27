@@ -20,7 +20,7 @@ ARG BANNER_MESSAGE=""
 ARG INCLUDE_OSANO="false"
 ARG GOOGLE_ANALYTICS=""
 ARG GOOGLE_SITE_VERIFICATION=""
-ARG UPDATE_ATTACK_EXTRAS="resources blog stixtests benefactors versions"
+ARG UPDATE_ATTACK_EXTRAS=""
 ARG VERSION_ARCHIVE_DIR="/var/cache/attack-website/version-archives"
 ARG ATTACK_RELEASES_DIR="/var/cache/attack-website/attack-releases"
 ARG DIFF_STIX_VERSION="v19.0"
@@ -80,7 +80,13 @@ RUN --mount=type=secret,id=workbench_api_key,required=false \
     fi; \
     if [ "${INCLUDE_OSANO}" = "true" ]; then export INCLUDE_OSANO; else unset INCLUDE_OSANO; fi; \
     mkdir -p "${VERSION_ARCHIVE_DIR}"; \
-    python3 update-attack.py --attack-brand --extras ${UPDATE_ATTACK_EXTRAS} --no-test-exitstatus --version-archive-dir "${VERSION_ARCHIVE_DIR}"
+    if [ -n "${UPDATE_ATTACK_EXTRAS}" ]; then \
+        set -- --extras ${UPDATE_ATTACK_EXTRAS}; \
+    else \
+        set --; \
+    fi; \
+    python3 update-attack.py --attack-brand "$@" --no-test-exitstatus \
+        --version-archive-dir "${VERSION_ARCHIVE_DIR}"
 
 RUN --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
     mkdir -p output/reports output/changes \
