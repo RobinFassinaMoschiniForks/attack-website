@@ -29,6 +29,7 @@ ARG STIX_LOCATION_ENTERPRISE="https://raw.githubusercontent.com/mitre/cti/master
 ARG STIX_LOCATION_MOBILE="https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json"
 ARG STIX_LOCATION_ICS="https://raw.githubusercontent.com/mitre/cti/master/ics-attack/ics-attack.json"
 ARG WORKBENCH_USER=""
+# `:` is the POSIX shell no-op, used when optional setup commands are not supplied.
 ARG OS_CA_TRUST_SETUP_COMMAND=":"
 ARG PYTHON_CA_TRUST_SETUP_COMMAND=":"
 
