@@ -12,7 +12,7 @@ COPY attack-search/src ./src
 RUN npm run build
 
 
-FROM python:3.13-slim-bookworm AS site-build
+FROM python:3.13-slim-bookworm AS site-base
 
 ARG PELICAN_SITEURL=""
 ARG BANNER_ENABLED="true"
@@ -67,6 +67,9 @@ COPY . ./
 # in the theme before running it.
 COPY --from=search-build /src/attack-search/dist/search_bundle.js attack-theme/static/scripts/search_bundle.js
 
+
+FROM site-base AS website-build
+
 # A Workbench API key is optional for local/upstream builds. When supplied as a BuildKit secret,
 # it is available only to this command and is not persisted in an image layer.
 RUN --mount=type=secret,id=workbench_api_key,required=false \
@@ -88,7 +91,7 @@ RUN --mount=type=secret,id=workbench_api_key,required=false \
         --version-archive-dir "${VERSION_ARCHIVE_DIR}"
 
 
-FROM site-build AS changelog-build
+FROM website-build AS changelog-build
 
 RUN --mount=type=cache,id=attack-website-artifacts-v1,target=/var/cache/attack-website,sharing=locked \
     if [ "${GENERATE_STIX_CHANGELOG}" = "true" ]; then \
