@@ -1,6 +1,6 @@
 # Developer Guide
 
-The sections below explains how to build and run the website locally using Docker & Nginx. If you want to extend the style, content or functionality of this site, please see our [Customizing the ATT&CK Website](/CUSTOMIZING.md) document for tips and tricks.
+The sections below explain how to build and run the website locally using Docker & Nginx. If you want to extend the style, content or functionality of this site, see the [customization guide](CUSTOMIZING.md).
 
 * Use **Workflow 1** if you need a comprehensive solution that handles both building and serving the website
 * Use **Workflow 2** if you're developing and need to quickly test changes without the overhead of the full Docker build process
@@ -9,7 +9,7 @@ Use our [Github Issue Tracker](https://github.com/mitre-attack/attack-website/is
 
 If you find errors or typos in the site content, please let us know by sending an email to <attack@mitre.org> with the subject **Website Content Error**, and make sure to include both a description of the error and the URL at which it can be found.
 
-_See [CONTRIBUTING.md](/CONTRIBUTING.md) for more information on making contributions to the ATT&CK website._
+_See the [contribution guide](CONTRIBUTING.md) for more information on making contributions to the ATT&CK website._
 
 ## Prerequisites
 
@@ -21,13 +21,15 @@ _See [CONTRIBUTING.md](/CONTRIBUTING.md) for more information on making contribu
 
 This workflow is designed to be a comprehensive, all-in-one solution to building and serving the website. It utilizes a multi-stage Docker build process to handle the entire sequence of operations starting from installing dependencies to generating static files, and ultimately running the website.
 
-The first stage in this Dockerfile leverages a Node.js base image (node:16) to handle JavaScript and Webpack operations required for generating the search bundle of the site.
+The first stage in this Dockerfile uses Node.js 26 (`node:26-bookworm-slim`) to generate the search bundle.
 
-The second stage uses a Python base image (python:3.10-slim-bullseye) to run the update-attack.py script, which generates static files for the entire website.
+The second stage uses Python 3.13 (`python:3.13-slim-bookworm`) to run `update-attack.py`, which generates the static site.
 
 The final stage is based on a lightweight Nginx image (nginx:stable-alpine) which is configured to serve the static files generated in the previous stage. In other words, once the Docker image is built, you can run a container from this image and have a fully functional version of the website served by an Nginx server.
 
 This approach is especially suitable if you need to have an isolated and reproducible build process, as each run starts from a clean state and goes through all the steps necessary to produce a running website.
+
+See the [Docker build guide](DOCKER.md) for build arguments, BuildKit secrets, extra-module selection, and test-exit behavior.
 
 ### Steps
 
@@ -51,7 +53,7 @@ This approach is especially suitable if you need to have an isolated and reprodu
 
 This workflow, on the other hand, is optimized for developers who need a faster iteration cycle for testing changes to the website. It allows for the website to be built manually on your local system, which can offer more control and faster feedback while making changes to the codebase.
 
-In this workflow, the Dockerfile is much simpler and serves a single purpose: to run an Nginx server that hosts the website. However, instead of embedding the website's static files within the Docker image (as in Workflow 1), these files are provided to the Docker container at runtime through a Docker volume. This volume points to the output/ directory on your local file system, where the build artifacts are located.
+In this workflow, the test image defined in `test/Dockerfile` is much simpler and serves a single purpose: to run an Nginx server that hosts the website. However, instead of embedding the website's static files within the Docker image (as in Workflow 1), these files are provided to the Docker container at runtime through a Docker volume. This volume points to the output/ directory on your local file system, where the build artifacts are located.
 
 The main advantage of this approach is that you can modify the website's source files, run the build process locally, and then refresh your browser to see the changes without having to rebuild the Docker image. This can greatly accelerate the feedback loop when you're making frequent changes to the site.
 
@@ -96,7 +98,7 @@ The main advantage of this approach is that you can modify the website's source 
 
    This will start a Docker container with the test environment image, forward port 80 from the container to your host machine, and mount the "output" directory from your local workspace to the "/workspace" directory inside the container. This allows Nginx to serve the static web content you built.
 
-   Please see [test/README.md](./test/README.md) for further usage details on the test environment image.
+   Please see [test/README.md](../test/README.md) for further usage details on the test environment image.
 
 5. Now, you should be able to view the website by opening a web browser and navigating to `http://localhost`.
 

@@ -36,7 +36,7 @@ You can also configure it through the Python build environment, as described bel
 
 ### Build environment variables
 
-`update-attack.py` loads values from the shell environment and an optional `.env` file. Shell values take precedence over `.env` values. The variables below affect the Python site build; Docker-specific build arguments are not included here.
+`update-attack.py` loads values from the shell environment and an optional `.env` file. Shell values take precedence over `.env` values. The variables below affect the Python site build. For Docker build arguments and examples, see the [Docker build guide](DOCKER.md).
 
 Boolean values use case-insensitive parsing. `1`, `true`, `t`, `yes`, `y`, and `on` enable a setting; `0`, `false`, `f`, `no`, `n`, and `off` disable it. An unset or empty variable uses the documented default. When an equivalent command-line option is supplied, it takes precedence over the environment value.
 
@@ -112,6 +112,15 @@ For example, run `python3 update-attack.py -m clean -m techniques -m website_bui
 Supportive modules need not to be called by arguments flags unless they are optional supportive modules such as the `tests` module.
 Select individual extra modules by repeating `--extras` (for example, `--extras resources --extras blog`), or use `--all-extras` to select every extra module.
 The `--all-extras` and `--extras` options cannot be combined.
+
+The options accept one value each. Commands written for versions before 5.0.0 that place several values after one option must be updated:
+
+| Before v5.0.0 | v5.0.0 and later |
+| --- | --- |
+| `-m clean techniques website_build` | `-m clean -m techniques -m website_build` |
+| `-t size links citations` | `-t size -t links -t citations` |
+| `-e resources blog` | `-e resources -e blog` |
+| `--extras` | `--all-extras` |
 
 ### Building your own module
 

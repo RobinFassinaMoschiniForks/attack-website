@@ -21,7 +21,9 @@ ARG INCLUDE_OSANO="false"
 ARG GOOGLE_ANALYTICS=""
 ARG GOOGLE_SITE_VERIFICATION=""
 ARG ATTACK_BRAND="false"
+ARG TEST_EXITSTATUS="true"
 ARG UPDATE_ATTACK_EXTRAS=""
+ARG UPDATE_ATTACK_ALL_EXTRAS="false"
 ARG GENERATE_STIX_CHANGELOG="false"
 ARG VERSION_ARCHIVE_DIR="/var/cache/attack-website/version-archives"
 ARG ATTACK_RELEASES_DIR="/var/cache/attack-website/attack-releases"
@@ -29,6 +31,7 @@ ARG DIFF_STIX_VERSION="v19.1"
 ARG STIX_LOCATION_ENTERPRISE="https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
 ARG STIX_LOCATION_MOBILE="https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json"
 ARG STIX_LOCATION_ICS="https://raw.githubusercontent.com/mitre/cti/master/ics-attack/ics-attack.json"
+ARG STIX_LOCATION_PRE="https://raw.githubusercontent.com/mitre/cti/master/pre-attack/pre-attack.json"
 ARG WORKBENCH_USER=""
 # `:` is the POSIX shell no-op, used when optional setup commands are not supplied.
 ARG OS_CA_TRUST_SETUP_COMMAND=":"
@@ -39,13 +42,18 @@ ENV PELICAN_SITEURL=${PELICAN_SITEURL} \
     BANNER_MESSAGE=${BANNER_MESSAGE} \
     GOOGLE_ANALYTICS=${GOOGLE_ANALYTICS} \
     GOOGLE_SITE_VERIFICATION=${GOOGLE_SITE_VERIFICATION} \
+    ATTACK_BRAND=${ATTACK_BRAND} \
+    INCLUDE_OSANO=${INCLUDE_OSANO} \
+    TEST_EXITSTATUS=${TEST_EXITSTATUS} \
     UPDATE_ATTACK_EXTRAS=${UPDATE_ATTACK_EXTRAS} \
+    UPDATE_ATTACK_ALL_EXTRAS=${UPDATE_ATTACK_ALL_EXTRAS} \
     VERSION_ARCHIVE_DIR=${VERSION_ARCHIVE_DIR} \
     ATTACK_RELEASES_DIR=${ATTACK_RELEASES_DIR} \
     DIFF_STIX_VERSION=${DIFF_STIX_VERSION} \
     STIX_LOCATION_ENTERPRISE=${STIX_LOCATION_ENTERPRISE} \
     STIX_LOCATION_MOBILE=${STIX_LOCATION_MOBILE} \
     STIX_LOCATION_ICS=${STIX_LOCATION_ICS} \
+    STIX_LOCATION_PRE=${STIX_LOCATION_PRE} \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
@@ -78,18 +86,15 @@ RUN --mount=type=secret,id=workbench_api_key,required=false \
         export WORKBENCH_API_KEY="$(cat /run/secrets/workbench_api_key)"; \
         export WORKBENCH_USER; \
     fi; \
-    if [ "${INCLUDE_OSANO}" = "true" ]; then export INCLUDE_OSANO; else unset INCLUDE_OSANO; fi; \
     mkdir -p "${VERSION_ARCHIVE_DIR}"; \
     set --; \
-    if [ "${ATTACK_BRAND}" = "true" ]; then \
-        set -- "$@" --attack-brand; \
-    fi; \
     if [ -n "${UPDATE_ATTACK_EXTRAS}" ]; then \
+        set -f; \
         for extra in ${UPDATE_ATTACK_EXTRAS}; do \
             set -- "$@" --extras "$extra"; \
         done; \
     fi; \
-    python3 update-attack.py "$@" --no-test-exitstatus \
+    python3 update-attack.py "$@" \
         --version-archive-dir "${VERSION_ARCHIVE_DIR}"
 
 

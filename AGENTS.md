@@ -8,7 +8,7 @@ This file is guidance for coding agents working in `attack-website`.
 - There was no existing `AGENTS.md` to preserve.
 - No Cursor rules were found in `.cursor/rules/` or `.cursorrules`.
 - No Copilot instructions were found in `.github/copilot-instructions.md`.
-- Primary human docs are `DEVELOPMENT.md`, `README.md`, `test/README.md`, and `CONTRIBUTING.md`.
+- Primary human docs are `docs/DEVELOPMENT.md`, `README.md`, `test/README.md`, and `docs/CONTRIBUTING.md`.
 
 ## Repo Shape
 
@@ -55,7 +55,7 @@ Run commands from the repo root unless a subdirectory is called out.
 
 ### Local Validation
 
-- Full local site validation follows `DEVELOPMENT.md` and `test/README.md`.
+- Full local site validation follows `docs/DEVELOPMENT.md` and `test/README.md`.
 - Build site output first, then serve `output/` through the Docker test image.
 - Test container build: `cd test && docker build -t attack-website-test .`
 - Test container run: `cd test && docker run -p 80:80 -v $(pwd)/../output:/workspace attack-website-test`
@@ -91,7 +91,7 @@ Run commands from the repo root unless a subdirectory is called out.
 
 - Follow existing file-local conventions before applying generic preferences.
 - Treat `pyproject.toml`, `attack-search/.eslintrc`, and `attack-style/.stylelintrc.json` as authoritative style configs.
-- Treat `DEVELOPMENT.md` and `.github/workflows/gh-pages.yml` as authoritative for build workflow.
+- Treat `docs/DEVELOPMENT.md` and `.github/workflows/gh-pages.yml` as authoritative for build workflow.
 - In templates, respect comments that mark generated files or source-of-truth files.
 - Example: `attack-theme/templates/general/base-template.html` explicitly says to edit `base-template.html`, not generated `base.html`.
 
@@ -186,7 +186,7 @@ Run commands from the repo root unless a subdirectory is called out.
 
 ## Git And Contribution Notes
 
-- Pull requests should target the `develop` branch per `CONTRIBUTING.md`.
+- Pull requests should target the `develop` branch per `docs/CONTRIBUTING.md`.
 - The PR template expects a reviewer and a `CHANGELOG.md` update when appropriate.
 - The website version is configured in `modules/site_config.py`; keep it aligned with release tags and docs.
 - Do not assume `master` is the integration branch just because GitHub Pages deploys from it.

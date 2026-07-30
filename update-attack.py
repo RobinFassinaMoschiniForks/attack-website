@@ -118,6 +118,8 @@ def cli(
         bool,
         typer.Option(
             "--all-extras",
+            envvar="UPDATE_ATTACK_ALL_EXTRAS",
+            show_envvar=True,
             help="Run every extra module. Cannot be combined with --extras.",
         ),
     ] = False,

@@ -8,6 +8,13 @@
 * Require `--modules`, `--extras`, and `--test` to be repeated for each selected value.
 * Replace the value-less `--extras` behavior with the explicit `--all-extras` flag.
 
+  | Before v5.0.0 | v5.0.0 and later |
+  | --- | --- |
+  | `-m clean techniques website_build` | `-m clean -m techniques -m website_build` |
+  | `-t size links citations` | `-t size -t links -t citations` |
+  | `-e resources blog` | `-e resources -e blog` |
+  | `--extras` | `--all-extras` |
+
 ## v4.4.3 (2026-05-12)
 
 ### Features
