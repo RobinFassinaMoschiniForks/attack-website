@@ -8,7 +8,7 @@ The data used to generate the live site at [attack.mitre.org](https://attack.mit
 
 You can generate the website using custom content by replacing the STIX bundle locations in `modules/site_config.py`, `domains`.
 A domain location can be a URL (please include http:// or https://), or a local file on disk.
-Optionally, you can set the `STIX_LOCATION_ENTERPRISE`, `STIX_LOCATION_MOBILE`, or `STIX_LOCATION_PRE` environment variables to the URL or local file as well.
+Optionally, you can set the `STIX_LOCATION_ENTERPRISE`, `STIX_LOCATION_MOBILE`, `STIX_LOCATION_ICS`, or `STIX_LOCATION_PRE` environment variables to the URL or local file as well.
 
 Matrices are defined in `modules/matrices/matrices_config.py`, you will need to update the structures declared in this file to modify the matrices.
 
@@ -31,8 +31,63 @@ Simply change the `navigator_link` field in `modules/site_config.py` to point to
 
 ### Changing the banner
 
-The banner message can be modified or hidden by modifying the `BANNER_ENABLED` and`BANNER_MESSAGE` properties within `modules/site_config.py`.
-Optionally, the `BANNER_ENABLED` and `BANNER_MESSAGE` environment variables can be set to a override the banner settings as well.
+The banner message can be modified by changing the `BANNER_MESSAGE` property within `modules/site_config.py`.
+You can also configure it through the Python build environment, as described below.
+
+### Build environment variables
+
+`update-attack.py` loads values from the shell environment and an optional `.env` file. Shell values take precedence over `.env` values. The variables below affect the Python site build; Docker-specific build arguments are not included here.
+
+Boolean values use case-insensitive parsing. `1`, `true`, `t`, `yes`, `y`, and `on` enable a setting; `0`, `false`, `f`, `no`, `n`, and `off` disable it. An unset or empty variable uses the documented default. When an equivalent command-line option is supplied, it takes precedence over the environment value.
+
+#### Build behavior
+
+| Variable | Default | Equivalent command-line option | Purpose |
+| --- | --- | --- | --- |
+| `ATTACK_BRAND` | `false` | `--attack-brand` / `--no-attack-brand` | Selects ATT&CK branding instead of the custom-instance theme. |
+| `BANNER_ENABLED` | `true` | `--banner-enable` / `--banner-disable` | Shows or hides the site banner. |
+| `BANNER_MESSAGE` | Custom-instance message | `--banner` | Supplies the HTML banner message. |
+| `INCLUDE_OSANO` | `false` | `--include-osano` / `--no-include-osano` | Includes the Osano privacy compliance script. |
+| `TEST_EXITSTATUS` | `true` | `--test-exitstatus` / `--no-test-exitstatus` | Controls whether site test failures produce a failing process status. |
+
+An ATT&CK-branded build still hides the untouched stock custom-instance banner when the banner setting comes only from its default. Setting `BANNER_ENABLED` to a true value or passing `--banner-enable` explicitly shows it.
+
+#### STIX data and archived versions
+
+Each `STIX_LOCATION_*` value may be an HTTP(S) URL or a local JSON file path.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `STIX_LOCATION_ENTERPRISE` | MITRE CTI Enterprise ATT&CK JSON | STIX source for Enterprise ATT&CK content. |
+| `STIX_LOCATION_MOBILE` | MITRE CTI Mobile ATT&CK JSON | STIX source for Mobile ATT&CK content. |
+| `STIX_LOCATION_ICS` | MITRE CTI ICS ATT&CK JSON | STIX source for ICS ATT&CK content. |
+| `STIX_LOCATION_PRE` | MITRE CTI PRE-ATT&CK JSON | STIX source for deprecated PRE-ATT&CK content. |
+| `ATTACK_VERSION_ARCHIVES` | `attack-version-archives` | Directory used to cache and read archived site versions. |
+
+#### External integrations
+
+| Variable | Default | Equivalent command-line option | Purpose |
+| --- | --- | --- | --- |
+| `WORKBENCH_USER` | Unset | — | Workbench user name for authenticated STIX downloads. Used only with `WORKBENCH_API_KEY`. |
+| `WORKBENCH_API_KEY` | Unset | — | Workbench API key for authenticated STIX downloads. Used only with `WORKBENCH_USER`; keep it out of version control. |
+| `GOOGLE_ANALYTICS` | Unset | `--google-analytics` | Google Analytics identifier included in generated pages. |
+| `GOOGLE_SITE_VERIFICATION` | Unset | `--google-site-verification` | Google site-verification value included in generated pages. |
+
+#### Pelican metadata
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `PELICAN_AUTHOR` | `MITRE` | Author metadata supplied to Pelican. |
+| `PELICAN_SITENAME` | `ATT&CK` | Site-name metadata supplied to Pelican. |
+| `PELICAN_SITEURL` | Empty string | Canonical site URL used by Pelican. |
+| `PELICAN_TIMEZONE` | `America/New_York` | Time zone supplied to Pelican. |
+| `PELICAN_DEFAULT_LANG` | `en` | Default language supplied to Pelican. |
+
+For example, use the ATT&CK theme and include Osano when building locally:
+
+```shell
+ATTACK_BRAND=true INCLUDE_OSANO=true python3 update-attack.py
+```
 
 ## Implementation Overview
 
@@ -52,9 +107,11 @@ Supportive modules are those who do not appear on the website menu but are criti
 An example of a supportive module is the `util` module which has methods and API calls to interface with the STIX bundles.
 
 Modules that are not present on the `modules` directory will not get built and will not appear on the website's main navigation menu.
-You can also select specific modules to be ran without removing modules from the directory by running the `update-attack.py` script with the `-m` flag followed by the names of the modules.
-For example, run `python3 update-attack.py -m clean techniques website_build` to run a fresh build, generate the techniques markdown files, and generate the HTML files.
+You can also select specific modules to be run without removing modules from the directory by repeating the `-m` option for each selected module.
+For example, run `python3 update-attack.py -m clean -m techniques -m website_build` to run a fresh build, generate the techniques markdown files, and generate the HTML files.
 Supportive modules need not to be called by arguments flags unless they are optional supportive modules such as the `tests` module.
+Select individual extra modules by repeating `--extras` (for example, `--extras resources --extras blog`), or use `--all-extras` to select every extra module.
+The `--all-extras` and `--extras` options cannot be combined.
 
 ### Building your own module
 

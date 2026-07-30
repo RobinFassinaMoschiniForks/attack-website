@@ -116,10 +116,7 @@ def generate_base_html():
         key["module_name"] for key in modules.run_ptr if key["module_name"] == "resources"
     ]
 
-    banner_enabled = site_config.BANNER_ENABLED
-    # if banner was disabled as a command line argument
-    if site_config.args.banner_disable:
-        banner_enabled = False
+    banner_enabled = site_config.args.banner_enabled
     website_build_config.base_page_data["BANNER_ENABLED"] = banner_enabled
 
     banner_message = site_config.BANNER_MESSAGE
@@ -131,7 +128,7 @@ def generate_base_html():
     logger.debug(f"{banner_enabled=}")
     logger.debug(f"{banner_message=}")
 
-    if site_config.args.attack_brand:
+    if site_config.args.attack_brand and not site_config.args.banner_enabled_explicit:
         if banner_message.startswith("This is a custom instance"):
             website_build_config.base_page_data["BANNER_ENABLED"] = False
 
@@ -250,14 +247,11 @@ def pelican_content():
 
     google_analytics = site_config.GOOGLE_ANALYTICS
     google_site_verification = site_config.GOOGLE_SITE_VERIFICATION
-    include_osano = site_config.INCLUDE_OSANO
-
     if site_config.args.google_analytics:
         google_analytics = site_config.args.google_analytics
     if site_config.args.google_site_verification:
         google_site_verification = site_config.args.google_site_verification
-    if site_config.args.include_osano:
-        include_osano = site_config.args.include_osano
+    include_osano = site_config.args.include_osano
 
     extra_settings = ""
     if google_analytics:

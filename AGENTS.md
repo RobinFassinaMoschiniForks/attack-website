@@ -46,7 +46,7 @@ Run commands from the repo root unless a subdirectory is called out.
 
 ### Build
 
-- Main website build: `uv run python update-attack.py --attack-brand --extras --no-test-exitstatus`
+- Main website build: `uv run python update-attack.py --attack-brand --all-extras --no-test-exitstatus`
 - Search bundle: `cd attack-search && npm run build`
 - Search dev bundle: `cd attack-search && npm run build:dev`
 - Copy built search bundle into site output: `cd attack-search && npm run copy`
@@ -77,7 +77,7 @@ Run commands from the repo root unless a subdirectory is called out.
 - Alternate single Jest file: `cd attack-search && npx jest __tests__/search-service.test.js`
 - Main Python-driven site tests run through the build script, not `pytest`.
 - Run specific site test categories: `uv run python update-attack.py -m tests -t size`
-- Multiple site test categories: `uv run python update-attack.py -m tests -t links external_links citations`
+- Multiple site test categories: `uv run python update-attack.py -m tests -t links -t external_links -t citations`
 
 ### Important Command Notes
 

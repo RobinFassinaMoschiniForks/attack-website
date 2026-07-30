@@ -1,6 +1,9 @@
-import argparse
 import time
+from enum import Enum
+from types import SimpleNamespace
+from typing import Annotated
 
+import typer
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -37,11 +40,33 @@ module_choices = [
 extras = ["resources", "versions", "blog", "stixtests", "benefactors", "contribute"]
 test_choices = ["size", "links", "external_links", "citations"]
 
+ModuleChoice = Enum("ModuleChoice", {choice.upper(): choice for choice in module_choices}, type=str)
+ExtraChoice = Enum("ExtraChoice", {choice.upper(): choice for choice in extras}, type=str)
+TestChoice = Enum("TestChoice", {choice.upper(): choice for choice in test_choices}, type=str)
 
-def validate_subdirectory_string(subdirectory_str):
+DESCRIPTION = (
+    "Build the ATT&CK website.\n"
+    "All flags are optional. If you run the build without flags, "
+    "the modules that pertain to the ATT&CK dataset will be ran. "
+    "If you would like to run extra modules, opt-in these modules with the "
+    "--extras or --all-extras flag."
+)
+
+
+app = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+    pretty_exceptions_enable=False,
+)
+
+
+def validate_subdirectory_string(subdirectory_str: str | None) -> str | None:
     """Validate subdirectory string."""
+    if subdirectory_str is None:
+        return None
+
     if not subdirectory_str.isascii():
-        raise argparse.ArgumentTypeError(f"{subdirectory_str} contains non ascii characters")
+        raise typer.BadParameter(f"{subdirectory_str} contains non ascii characters")
 
     # Remove leading and trailing /
     if subdirectory_str.startswith("/"):
@@ -54,141 +79,164 @@ def validate_subdirectory_string(subdirectory_str):
     return subdirectory_str
 
 
-def get_parsed_args():
-    """Create argument parser and parse arguments."""
-    parser = argparse.ArgumentParser(
-        description=(
-            "Build the ATT&CK website.\n"
-            "All flags are optional. If you run the build without flags, "
-            "the modules that pertain to the ATT&CK dataset will be ran. "
-            "If you would like to run extra modules, opt-in these modules with the"
-            "--extras flag."
-        )
-    )
-    parser.add_argument(
-        "--no-stix-link-replacement",
-        action="store_true",
-        help="If this flag is absent, links to attack.mitre.org/[page] in the STIX data will be replaced with /[page]. Add this flag to preserve links to attack.mitre.org.",
-    )
-    parser.add_argument(
-        "--modules",
-        "-m",
-        nargs="+",
-        type=str,
-        choices=module_choices,
-        help=(
-            "Run specific modules by selecting from the "
-            "list and leaving one space in "
-            "between them. For example: '-m clean techniques tactics'."
-            "Will run all the modules if flag is not called, or selected "
-            "without arguments."
+@app.command(help=DESCRIPTION)
+def cli(
+    ctx: typer.Context,
+    no_stix_link_replacement: Annotated[
+        bool,
+        typer.Option(
+            "--no-stix-link-replacement",
+            help=(
+                "If this flag is absent, links to attack.mitre.org/[page] in the STIX data will be replaced "
+                "with /[page]. Add this flag to preserve links to attack.mitre.org."
+            ),
         ),
-    )
-    parser.add_argument(
-        "--extras",
-        "-e",
-        nargs="*",
-        type=str,
-        choices=extras,
-        help=(
-            "Run extra modules that do not pertain to the ATT&CK dataset. "
-            "Select from the list and leaving one space in "
-            "between them. For example: '-m resources blog'.\n"
-            "These modules will only run if the user adds this flag. "
-            "Calling this flag without arguments will select all the extra modules."
+    ] = False,
+    modules_to_run: Annotated[
+        list[ModuleChoice] | None,
+        typer.Option(
+            "--modules",
+            "-m",
+            help=(
+                "Run a specific module. Repeat the option to select multiple modules, for example: "
+                "'-m clean -m techniques -m tactics'. Runs all modules when the option is not used."
+            ),
         ),
-    )
-    parser.add_argument(
-        "--test",
-        "-t",
-        nargs="+",
-        choices=test_choices,
-        dest="tests",
-        help=(
-            "Run specific tests by selecting from the list and leaving "
-            "one space in between them. For example: '-t output links'. "
-            "Tests: "
-            "size (size of output directory against github pages limit); "
-            "links (dead internal hyperlinks and relative hyperlinks); "
-            "external_links (dead external hyperlinks); "
-            "citations (unparsed citation text)."
+    ] = None,
+    extra_modules: Annotated[
+        list[ExtraChoice] | None,
+        typer.Option(
+            "--extras",
+            "-e",
+            help=(
+                "Run an extra module that does not pertain to the ATT&CK dataset. Repeat the option to select "
+                "multiple extras, for example: '-e resources -e blog'. Use --all-extras to run every extra module."
+            ),
         ),
-    )
-    parser.add_argument(
-        "--attack-brand", action="store_true", help="Applies ATT&CK brand colors. See also the --extras flag."
-    )
-    parser.add_argument("--proxy", help="set proxy")
-    parser.add_argument(
-        "--subdirectory",
-        help="If you intend to host the site from a sub-directory, specify the directory using this flag.",
-        type=validate_subdirectory_string,
-    )
-    parser.add_argument(
-        "--print-tests",
-        dest="print_tests",
-        action="store_true",
-        help="Force test output to print to stdout even if the results are very long.",
-    )
-    parser.add_argument(
-        "--no-test-exitstatus",
-        dest="override_exit_status",
-        action="store_true",
-        help="Forces application to exit with success status codes even if tests fail.",
-    )
-    parser.add_argument(
-        "--version-archive-dir",
-        type=str,
-        help=(
-            "If specified, sets the directory for the ATT&CK version archives. Defaults to attack-version-archives"
+    ] = None,
+    all_extras: Annotated[
+        bool,
+        typer.Option(
+            "--all-extras",
+            help="Run every extra module. Cannot be combined with --extras.",
         ),
-    )
-    parser.add_argument(
-        "--banner",
-        type=str,
-        help=(
-            "If specified, sets the banner for the site to this string. "
-            "If left out and the banner is enabled, the text will come from either "
-            "the modules/site_config.py BANNER_MESSAGE variable or the BANNER_MESSAGE environment variable in that order."
+    ] = False,
+    selected_tests: Annotated[
+        list[TestChoice] | None,
+        typer.Option(
+            "--test",
+            "-t",
+            help=(
+                "Run a specific test. Repeat the option to select multiple tests. Tests: size (output size against "
+                "the GitHub Pages limit); links (dead internal and relative links); external_links (dead external "
+                "links); citations (unparsed citation text)."
+            ),
         ),
-    )
-    parser.add_argument(
-        "--banner-disable",
-        action="store_true",
-        help=(
-            "Explicitly disable the banner when building the website. "
-            "Default behavior without this flag is to have a banner generated on the site."
+    ] = None,
+    attack_brand: Annotated[
+        bool,
+        typer.Option(
+            "--attack-brand/--no-attack-brand",
+            envvar="ATTACK_BRAND",
+            show_envvar=True,
+            help="Apply ATT&CK brand colors; false uses custom-instance styling.",
         ),
-    )
-    parser.add_argument(
-        "--google-analytics",
-        type=str,
-        help=("If a Google Analytics ID is provided, then the site will include it on all pages."),
-    )
-    parser.add_argument(
-        "--google-site-verification",
-        type=str,
-        help=("If a Google site verification code is provided, then the site will include it on all pages."),
-    )
-    parser.add_argument(
-        "--include-osano",
-        action="store_true",
-        help=("If specified, the site will include the Osano privacy compliance script."),
-    )
+    ] = False,
+    proxy: Annotated[str | None, typer.Option("--proxy", help="Set proxy.")] = None,
+    subdirectory: Annotated[
+        str | None,
+        typer.Option(
+            "--subdirectory",
+            callback=validate_subdirectory_string,
+            help="Host the site from the specified subdirectory.",
+        ),
+    ] = None,
+    print_tests: Annotated[
+        bool,
+        typer.Option("--print-tests", help="Print test output to stdout even if the results are very long."),
+    ] = False,
+    test_exitstatus: Annotated[
+        bool,
+        typer.Option(
+            "--test-exitstatus/--no-test-exitstatus",
+            envvar="TEST_EXITSTATUS",
+            show_envvar=True,
+            help="Preserve failing site-test exit codes; disable to force a successful process status.",
+        ),
+    ] = True,
+    version_archive_dir: Annotated[
+        str | None,
+        typer.Option(
+            "--version-archive-dir",
+            help="Set the ATT&CK version archive directory. Defaults to attack-version-archives.",
+        ),
+    ] = None,
+    banner: Annotated[
+        str | None,
+        typer.Option(
+            "--banner",
+            help=(
+                "Set the site banner text. Otherwise use modules/site_config.py BANNER_MESSAGE or the "
+                "BANNER_MESSAGE environment variable."
+            ),
+        ),
+    ] = None,
+    banner_enabled: Annotated[
+        bool,
+        typer.Option(
+            "--banner-enable/--banner-disable",
+            envvar="BANNER_ENABLED",
+            show_envvar=True,
+            help="Enable or disable the site banner.",
+        ),
+    ] = True,
+    google_analytics: Annotated[
+        str | None,
+        typer.Option("--google-analytics", help="Include the provided Google Analytics ID on all pages."),
+    ] = None,
+    google_site_verification: Annotated[
+        str | None,
+        typer.Option(
+            "--google-site-verification",
+            help="Include the provided Google site verification code on all pages.",
+        ),
+    ] = None,
+    include_osano: Annotated[
+        bool,
+        typer.Option(
+            "--include-osano/--no-include-osano",
+            envvar="INCLUDE_OSANO",
+            show_envvar=True,
+            help="Include or exclude the Osano privacy compliance script.",
+        ),
+    ] = False,
+) -> None:
+    """Build the ATT&CK website."""
+    if all_extras and extra_modules is not None:
+        raise typer.BadParameter("--all-extras cannot be combined with --extras")
 
-    args = parser.parse_args()
-
-    # If modules is empty, means all modules will be ran
-    if not args.modules:
-        args.modules = module_choices
-
-    # If the extras flag was called without params, set to all
-    if not args.extras and isinstance(args.extras, list):
-        args.extras = extras
-
-    # Set global argument list for modules
+    args = SimpleNamespace(
+        no_stix_link_replacement=no_stix_link_replacement,
+        modules=[value.value for value in modules_to_run] if modules_to_run else module_choices,
+        extras=extras
+        if all_extras
+        else ([value.value for value in extra_modules] if extra_modules is not None else None),
+        tests=[value.value for value in selected_tests] if selected_tests is not None else None,
+        attack_brand=attack_brand,
+        proxy=proxy,
+        subdirectory=subdirectory,
+        print_tests=print_tests,
+        override_exit_status=not test_exitstatus,
+        version_archive_dir=version_archive_dir,
+        banner=banner,
+        banner_enabled=banner_enabled,
+        banner_enabled_explicit=ctx.get_parameter_source("banner_enabled").name != "DEFAULT",
+        google_analytics=google_analytics,
+        google_site_verification=google_site_verification,
+        include_osano=include_osano,
+    )
     site_config.args = args
-
-    return args
+    run_build(args)
 
 
 def remove_from_build(arg_modules, arg_extras):
@@ -222,11 +270,8 @@ def remove_from_build(arg_modules, arg_extras):
     remove_from_menu()
 
 
-def main():
-    """Entry point for the update script."""
-    # Get args
-    args = get_parsed_args()
-
+def run_build(args):
+    """Run the website build with parsed command-line arguments."""
     # Remove modules from build
     remove_from_build(args.modules, args.extras)
 
@@ -256,6 +301,11 @@ def main():
     # Print end of module
     update_end = time.time()
     logger.info(f"TOTAL Update Time: {update_end - update_start:.2f} seconds")
+
+
+def main():
+    """Entry point for the update script."""
+    app()
 
 
 if __name__ == "__main__":

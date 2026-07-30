@@ -9,7 +9,7 @@ import modules
 load_dotenv()
 
 attack_version = ""
-website_version = "4.4.3"
+website_version = "5.0.0"
 
 # Read versions file for ATT&CK version
 with open("data/versions.json", "r", encoding="utf8") as f:
@@ -45,9 +45,8 @@ domains = [
 default_archive_dir = "attack-version-archives"
 ATTACK_VERSION_ARCHIVES = os.getenv("ATTACK_VERSION_ARCHIVES", default_archive_dir)
 
-# banner for the website
+# Banner message for the website. BANNER_ENABLED is parsed by update-attack.py.
 default_banner_message = "This is a custom instance of the MITRE ATT&CK Website. The official website can be found at <a href='https://attack.mitre.org'>attack.mitre.org</a>."
-BANNER_ENABLED = os.getenv("BANNER_ENABLED", True)
 BANNER_MESSAGE = os.getenv("BANNER_MESSAGE", default_banner_message)
 
 # Args for modules to use if needed
@@ -204,5 +203,3 @@ WORKBENCH_API_KEY = os.getenv("WORKBENCH_API_KEY")
 
 GOOGLE_ANALYTICS = os.getenv("GOOGLE_ANALYTICS")
 GOOGLE_SITE_VERIFICATION = os.getenv("GOOGLE_SITE_VERIFICATION")
-
-INCLUDE_OSANO = os.getenv("INCLUDE_OSANO")

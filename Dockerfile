@@ -85,7 +85,9 @@ RUN --mount=type=secret,id=workbench_api_key,required=false \
         set -- "$@" --attack-brand; \
     fi; \
     if [ -n "${UPDATE_ATTACK_EXTRAS}" ]; then \
-        set -- "$@" --extras ${UPDATE_ATTACK_EXTRAS}; \
+        for extra in ${UPDATE_ATTACK_EXTRAS}; do \
+            set -- "$@" --extras "$extra"; \
+        done; \
     fi; \
     python3 update-attack.py "$@" --no-test-exitstatus \
         --version-archive-dir "${VERSION_ARCHIVE_DIR}"

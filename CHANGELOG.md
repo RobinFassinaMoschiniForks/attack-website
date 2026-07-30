@@ -1,5 +1,13 @@
 # Website Changelog
 
+## v5.0.0 (2026-07-30)
+
+### Breaking Changes
+
+* Migrate the `update-attack.py` command-line interface from argparse to Typer.
+* Require `--modules`, `--extras`, and `--test` to be repeated for each selected value.
+* Replace the value-less `--extras` behavior with the explicit `--all-extras` flag.
+
 ## v4.4.3 (2026-05-12)
 
 ### Features

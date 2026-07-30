@@ -64,7 +64,9 @@ The main advantage of this approach is that you can modify the website's source 
     * Build the Pelican content by running the following command from the root of the project:
 
         ```shell
-        python3 update-attack.py --attack-brand --extras --no-test-exitstatus
+        python3 update-attack.py --attack-brand \
+            --all-extras \
+            --no-test-exitstatus
         ```
 
       The static web content will be written to a folder called "output".

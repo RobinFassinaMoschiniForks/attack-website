@@ -37,13 +37,16 @@ jobs:
       - name: Toggle banner if there is a message
         run: |
           if [[ -z "${BANNER_MESSAGE}" ]]; then
-            echo "BANNER_ENABLED=False" >> $GITHUB_ENV
+            echo "BANNER_ENABLED=false" >> $GITHUB_ENV
           else
-            echo "BANNER_ENABLED=True" >> $GITHUB_ENV
+            echo "BANNER_ENABLED=true" >> $GITHUB_ENV
           fi
 
       - name: Build website
-        run: python3 update-attack.py --attack-brand --extras --no-test-exitstatus
+        run: >-
+          python3 update-attack.py --attack-brand
+          --all-extras
+          --no-test-exitstatus
         env:
           GOOGLE_ANALYTICS: ${{ secrets.GOOGLE_ANALYTICS }}
           GOOGLE_SITE_VERIFICATION: ${{ secrets.GOOGLE_SITE_VERIFICATION }}
