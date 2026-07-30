@@ -8,7 +8,7 @@ The data used to generate the live site at [attack.mitre.org](https://attack.mit
 
 You can generate the website using custom content by replacing the STIX bundle locations in `modules/site_config.py`, `domains`.
 A domain location can be a URL (please include http:// or https://), or a local file on disk.
-Optionally, you can set the `STIX_LOCATION_ENTERPRISE`, `STIX_LOCATION_MOBILE`, `STIX_LOCATION_ICS`, or `STIX_LOCATION_PRE` environment variables to the URL or local file as well.
+Optionally, you can set the `ATTACK_WEBSITE_STIX_LOCATION_ENTERPRISE`, `ATTACK_WEBSITE_STIX_LOCATION_MOBILE`, `ATTACK_WEBSITE_STIX_LOCATION_ICS`, or `ATTACK_WEBSITE_STIX_LOCATION_PRE` environment variables to the URL or local file as well.
 
 Matrices are defined in `modules/matrices/matrices_config.py`, you will need to update the structures declared in this file to modify the matrices.
 
@@ -31,12 +31,16 @@ Simply change the `navigator_link` field in `modules/site_config.py` to point to
 
 ### Changing the banner
 
-The banner message can be modified by changing the `BANNER_MESSAGE` property within `modules/site_config.py`.
+The banner message can be modified by changing the `BANNER_MESSAGE` property within `modules/site_config.py` or setting `ATTACK_WEBSITE_BANNER_MESSAGE`.
 You can also configure it through the Python build environment, as described below.
 
 ### Build environment variables
 
 `update-attack.py` loads values from the shell environment and an optional `.env` file. Shell values take precedence over `.env` values. The variables below affect the Python site build. For Docker build arguments and examples, see the [Docker build guide](DOCKER.md).
+
+As of 5.0.0, project-owned build variables must use the `ATTACK_WEBSITE_` prefix. Legacy unprefixed names are not supported. `PELICAN_*` variables are unchanged because Pelican consumes them directly.
+
+To configure a local build, copy [`.env.template`](../.env.template) to `.env`, then edit only the settings you need. The repository ignores `.env`; do not commit credentials such as `ATTACK_WEBSITE_WORKBENCH_API_KEY`. Shell environment values override the values in `.env`.
 
 Boolean values use case-insensitive parsing. `1`, `true`, `t`, `yes`, `y`, and `on` enable a setting; `0`, `false`, `f`, `no`, `n`, and `off` disable it. An unset or empty variable uses the documented default. When an equivalent command-line option is supplied, it takes precedence over the environment value.
 
@@ -44,34 +48,35 @@ Boolean values use case-insensitive parsing. `1`, `true`, `t`, `yes`, `y`, and `
 
 | Variable | Default | Equivalent command-line option | Purpose |
 | --- | --- | --- | --- |
-| `ATTACK_BRAND` | `false` | `--attack-brand` / `--no-attack-brand` | Selects ATT&CK branding instead of the custom-instance theme. |
-| `BANNER_ENABLED` | `true` | `--banner-enable` / `--banner-disable` | Shows or hides the site banner. |
-| `BANNER_MESSAGE` | Custom-instance message | `--banner` | Supplies the HTML banner message. |
-| `INCLUDE_OSANO` | `false` | `--include-osano` / `--no-include-osano` | Includes the Osano privacy compliance script. |
-| `TEST_EXITSTATUS` | `true` | `--test-exitstatus` / `--no-test-exitstatus` | Controls whether site test failures produce a failing process status. |
+| `ATTACK_WEBSITE_ATTACK_BRAND` | `false` | `--attack-brand` / `--no-attack-brand` | Selects ATT&CK branding instead of the custom-instance theme. |
+| `ATTACK_WEBSITE_BANNER_ENABLED` | `true` | `--banner-enable` / `--banner-disable` | Shows or hides the site banner. |
+| `ATTACK_WEBSITE_BANNER_MESSAGE` | Custom-instance message | `--banner` | Supplies the HTML banner message. |
+| `ATTACK_WEBSITE_INCLUDE_OSANO` | `false` | `--include-osano` / `--no-include-osano` | Includes the Osano privacy compliance script. |
+| `ATTACK_WEBSITE_TEST_EXITSTATUS` | `true` | `--test-exitstatus` / `--no-test-exitstatus` | Controls whether site test failures produce a failing process status. |
+| `ATTACK_WEBSITE_UPDATE_ATTACK_ALL_EXTRAS` | `false` | `--all-extras` | Runs every optional extra module. Cannot be combined with `--extras`. |
 
-An ATT&CK-branded build still hides the untouched stock custom-instance banner when the banner setting comes only from its default. Setting `BANNER_ENABLED` to a true value or passing `--banner-enable` explicitly shows it.
+An ATT&CK-branded build still hides the untouched stock custom-instance banner when the banner setting comes only from its default. Setting `ATTACK_WEBSITE_BANNER_ENABLED` to a true value or passing `--banner-enable` explicitly shows it.
 
 #### STIX data and archived versions
 
-Each `STIX_LOCATION_*` value may be an HTTP(S) URL or a local JSON file path.
+Each `ATTACK_WEBSITE_STIX_LOCATION_*` value may be an HTTP(S) URL or a local JSON file path.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `STIX_LOCATION_ENTERPRISE` | MITRE CTI Enterprise ATT&CK JSON | STIX source for Enterprise ATT&CK content. |
-| `STIX_LOCATION_MOBILE` | MITRE CTI Mobile ATT&CK JSON | STIX source for Mobile ATT&CK content. |
-| `STIX_LOCATION_ICS` | MITRE CTI ICS ATT&CK JSON | STIX source for ICS ATT&CK content. |
-| `STIX_LOCATION_PRE` | MITRE CTI PRE-ATT&CK JSON | STIX source for deprecated PRE-ATT&CK content. |
-| `ATTACK_VERSION_ARCHIVES` | `attack-version-archives` | Directory used to cache and read archived site versions. |
+| `ATTACK_WEBSITE_STIX_LOCATION_ENTERPRISE` | MITRE CTI Enterprise ATT&CK JSON | STIX source for Enterprise ATT&CK content. |
+| `ATTACK_WEBSITE_STIX_LOCATION_MOBILE` | MITRE CTI Mobile ATT&CK JSON | STIX source for Mobile ATT&CK content. |
+| `ATTACK_WEBSITE_STIX_LOCATION_ICS` | MITRE CTI ICS ATT&CK JSON | STIX source for ICS ATT&CK content. |
+| `ATTACK_WEBSITE_STIX_LOCATION_PRE` | MITRE CTI PRE-ATT&CK JSON | STIX source for deprecated PRE-ATT&CK content. |
+| `ATTACK_WEBSITE_ATTACK_VERSION_ARCHIVES` | `attack-version-archives` | Directory used to cache and read archived site versions. |
 
 #### External integrations
 
 | Variable | Default | Equivalent command-line option | Purpose |
 | --- | --- | --- | --- |
-| `WORKBENCH_USER` | Unset | — | Workbench user name for authenticated STIX downloads. Used only with `WORKBENCH_API_KEY`. |
-| `WORKBENCH_API_KEY` | Unset | — | Workbench API key for authenticated STIX downloads. Used only with `WORKBENCH_USER`; keep it out of version control. |
-| `GOOGLE_ANALYTICS` | Unset | `--google-analytics` | Google Analytics identifier included in generated pages. |
-| `GOOGLE_SITE_VERIFICATION` | Unset | `--google-site-verification` | Google site-verification value included in generated pages. |
+| `ATTACK_WEBSITE_WORKBENCH_USER` | Unset | — | Workbench user name for authenticated STIX downloads. Used only with `ATTACK_WEBSITE_WORKBENCH_API_KEY`. |
+| `ATTACK_WEBSITE_WORKBENCH_API_KEY` | Unset | — | Workbench API key for authenticated STIX downloads. Used only with `ATTACK_WEBSITE_WORKBENCH_USER`; keep it out of version control. |
+| `ATTACK_WEBSITE_GOOGLE_ANALYTICS` | Unset | `--google-analytics` | Google Analytics identifier included in generated pages. |
+| `ATTACK_WEBSITE_GOOGLE_SITE_VERIFICATION` | Unset | `--google-site-verification` | Google site-verification value included in generated pages. |
 
 #### Pelican metadata
 
@@ -86,7 +91,7 @@ Each `STIX_LOCATION_*` value may be an HTTP(S) URL or a local JSON file path.
 For example, use the ATT&CK theme and include Osano when building locally:
 
 ```shell
-ATTACK_BRAND=true INCLUDE_OSANO=true python3 update-attack.py
+ATTACK_WEBSITE_ATTACK_BRAND=true ATTACK_WEBSITE_INCLUDE_OSANO=true python3 update-attack.py
 ```
 
 ## Implementation Overview

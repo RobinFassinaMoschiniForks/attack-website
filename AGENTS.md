@@ -30,7 +30,7 @@ This file is guidance for coding agents working in `attack-website`.
 - Docker is the preferred way to validate the final static output in an Nginx-like environment.
 - CI currently uses Python `3.13` and Node `18.x` in `.github/workflows/gh-pages.yml`.
 - Prefer CI versions when reproducing CI behavior; Docker and development docs may reference older base images.
-- Production-like builds may depend on environment variables from `.github/workflows/gh-pages.yml`, including `GOOGLE_ANALYTICS`, `GOOGLE_SITE_VERIFICATION`, `INCLUDE_OSANO`, and `PELICAN_SITEURL`.
+- Production-like builds may depend on environment variables from `.github/workflows/gh-pages.yml`, including `ATTACK_WEBSITE_GOOGLE_ANALYTICS`, `ATTACK_WEBSITE_GOOGLE_SITE_VERIFICATION`, `ATTACK_WEBSITE_INCLUDE_OSANO`, and `PELICAN_SITEURL`.
 
 ## High-Value Commands
 

@@ -118,7 +118,7 @@ def cli(
         bool,
         typer.Option(
             "--all-extras",
-            envvar="UPDATE_ATTACK_ALL_EXTRAS",
+            envvar="ATTACK_WEBSITE_UPDATE_ATTACK_ALL_EXTRAS",
             show_envvar=True,
             help="Run every extra module. Cannot be combined with --extras.",
         ),
@@ -139,7 +139,7 @@ def cli(
         bool,
         typer.Option(
             "--attack-brand/--no-attack-brand",
-            envvar="ATTACK_BRAND",
+            envvar="ATTACK_WEBSITE_ATTACK_BRAND",
             show_envvar=True,
             help="Apply ATT&CK brand colors; false uses custom-instance styling.",
         ),
@@ -161,7 +161,7 @@ def cli(
         bool,
         typer.Option(
             "--test-exitstatus/--no-test-exitstatus",
-            envvar="TEST_EXITSTATUS",
+            envvar="ATTACK_WEBSITE_TEST_EXITSTATUS",
             show_envvar=True,
             help="Preserve failing site-test exit codes; disable to force a successful process status.",
         ),
@@ -179,7 +179,7 @@ def cli(
             "--banner",
             help=(
                 "Set the site banner text. Otherwise use modules/site_config.py BANNER_MESSAGE or the "
-                "BANNER_MESSAGE environment variable."
+                "ATTACK_WEBSITE_BANNER_MESSAGE environment variable."
             ),
         ),
     ] = None,
@@ -187,7 +187,7 @@ def cli(
         bool,
         typer.Option(
             "--banner-enable/--banner-disable",
-            envvar="BANNER_ENABLED",
+            envvar="ATTACK_WEBSITE_BANNER_ENABLED",
             show_envvar=True,
             help="Enable or disable the site banner.",
         ),
@@ -207,7 +207,7 @@ def cli(
         bool,
         typer.Option(
             "--include-osano/--no-include-osano",
-            envvar="INCLUDE_OSANO",
+            envvar="ATTACK_WEBSITE_INCLUDE_OSANO",
             show_envvar=True,
             help="Include or exclude the Osano privacy compliance script.",
         ),

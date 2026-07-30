@@ -32,14 +32,14 @@ jobs:
         run: python3 -m pip install -r requirements.txt
 
       - name: Get banner message
-        run: echo "BANNER_MESSAGE=$(<website-banner.production)" >> $GITHUB_ENV
+        run: echo "ATTACK_WEBSITE_BANNER_MESSAGE=$(<website-banner.production)" >> $GITHUB_ENV
 
       - name: Toggle banner if there is a message
         run: |
-          if [[ -z "${BANNER_MESSAGE}" ]]; then
-            echo "BANNER_ENABLED=false" >> $GITHUB_ENV
+          if [[ -z "${ATTACK_WEBSITE_BANNER_MESSAGE}" ]]; then
+            echo "ATTACK_WEBSITE_BANNER_ENABLED=false" >> $GITHUB_ENV
           else
-            echo "BANNER_ENABLED=true" >> $GITHUB_ENV
+            echo "ATTACK_WEBSITE_BANNER_ENABLED=true" >> $GITHUB_ENV
           fi
 
       - name: Build website
@@ -48,9 +48,9 @@ jobs:
           --all-extras
           --no-test-exitstatus
         env:
-          GOOGLE_ANALYTICS: ${{ secrets.GOOGLE_ANALYTICS }}
-          GOOGLE_SITE_VERIFICATION: ${{ secrets.GOOGLE_SITE_VERIFICATION }}
-          INCLUDE_OSANO: true
+          ATTACK_WEBSITE_GOOGLE_ANALYTICS: ${{ secrets.GOOGLE_ANALYTICS }}
+          ATTACK_WEBSITE_GOOGLE_SITE_VERIFICATION: ${{ secrets.GOOGLE_SITE_VERIFICATION }}
+          ATTACK_WEBSITE_INCLUDE_OSANO: true
           PELICAN_SITEURL: https://attack.mitre.org
 
       - name: Cleanup build

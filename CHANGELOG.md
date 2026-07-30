@@ -17,7 +17,7 @@
 
 ### Upgrade notes
 
-* The build now supports environment-variable equivalents for its boolean CLI options: `ATTACK_BRAND`, `BANNER_ENABLED`, `INCLUDE_OSANO`, `TEST_EXITSTATUS`, and `UPDATE_ATTACK_ALL_EXTRAS`. Use the paired CLI flags (for example, `--banner-enable` / `--banner-disable`) when a command needs to override an environment setting.
+* Project-owned build environment variables now use the `ATTACK_WEBSITE_` prefix, including `ATTACK_WEBSITE_ATTACK_BRAND`, `ATTACK_WEBSITE_BANNER_ENABLED`, `ATTACK_WEBSITE_INCLUDE_OSANO`, `ATTACK_WEBSITE_TEST_EXITSTATUS`, and `ATTACK_WEBSITE_UPDATE_ATTACK_ALL_EXTRAS`. Legacy unprefixed names are no longer accepted; `PELICAN_*` variables remain unchanged because Pelican consumes them directly.
 
 ## v4.4.3 (2026-05-12)
 
