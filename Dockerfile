@@ -15,7 +15,7 @@ RUN npm run build
 FROM python:3.13-slim-bookworm AS site-base
 
 ARG PELICAN_SITEURL=""
-ARG BANNER_ENABLED="true"
+ARG BANNER_ENABLED=""
 ARG BANNER_MESSAGE=""
 ARG INCLUDE_OSANO="false"
 ARG GOOGLE_ANALYTICS=""
@@ -38,8 +38,6 @@ ARG OS_CA_TRUST_SETUP_COMMAND=":"
 ARG PYTHON_CA_TRUST_SETUP_COMMAND=":"
 
 ENV PELICAN_SITEURL=${PELICAN_SITEURL} \
-    BANNER_ENABLED=${BANNER_ENABLED} \
-    BANNER_MESSAGE=${BANNER_MESSAGE} \
     GOOGLE_ANALYTICS=${GOOGLE_ANALYTICS} \
     GOOGLE_SITE_VERIFICATION=${GOOGLE_SITE_VERIFICATION} \
     ATTACK_BRAND=${ATTACK_BRAND} \
@@ -86,6 +84,8 @@ RUN --mount=type=secret,id=workbench_api_key,required=false \
         export WORKBENCH_API_KEY="$(cat /run/secrets/workbench_api_key)"; \
         export WORKBENCH_USER; \
     fi; \
+    if [ -n "${BANNER_ENABLED}" ]; then export BANNER_ENABLED; else unset BANNER_ENABLED; fi; \
+    if [ -n "${BANNER_MESSAGE}" ]; then export BANNER_MESSAGE; else unset BANNER_MESSAGE; fi; \
     mkdir -p "${VERSION_ARCHIVE_DIR}"; \
     set --; \
     if [ -n "${UPDATE_ATTACK_EXTRAS}" ]; then \

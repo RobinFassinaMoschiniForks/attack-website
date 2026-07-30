@@ -20,8 +20,8 @@ Use `--build-arg NAME=value` to customize a build. `ATTACK_BRAND`, `BANNER_ENABL
 | Argument | Default | Purpose |
 | --- | --- | --- |
 | `ATTACK_BRAND` | `false` | Use the ATT&CK-branded theme. |
-| `BANNER_ENABLED` | `true` | Show the site banner. |
-| `BANNER_MESSAGE` | Empty | Set the banner content. |
+| `BANNER_ENABLED` | CLI default (`true`) | Show the site banner. |
+| `BANNER_MESSAGE` | Custom-instance message | Set the banner content. |
 | `INCLUDE_OSANO` | `false` | Include the Osano privacy script. |
 | `TEST_EXITSTATUS` | `true` | Preserve a nonzero exit status when site tests fail. |
 | `UPDATE_ATTACK_ALL_EXTRAS` | `false` | Run every optional extra module. |

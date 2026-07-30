@@ -15,13 +15,17 @@
   | `-e resources blog` | `-e resources -e blog` |
   | `--extras` | `--all-extras` |
 
+### Upgrade notes
+
+* The build now supports environment-variable equivalents for its boolean CLI options: `ATTACK_BRAND`, `BANNER_ENABLED`, `INCLUDE_OSANO`, `TEST_EXITSTATUS`, and `UPDATE_ATTACK_ALL_EXTRAS`. Use the paired CLI flags (for example, `--banner-enable` / `--banner-disable`) when a command needs to override an environment setting.
+
 ## v4.4.3 (2026-05-12)
 
 ### Features
 
 * Release ATT&CK content version 19.1.
   See detailed changes [here](https://github.com/mitre/cti/releases/tag/ATT%26CK-v19.1).
-  
+
 ## v4.4.2 (2026-04-28)
 
 ### Features
