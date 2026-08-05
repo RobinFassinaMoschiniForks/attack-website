@@ -1,6 +1,6 @@
 # Website Changelog
 
-## v5.0.0 (2026-07-31)
+## v5.0.0 (2026-08-06)
 
 * Release ATT&CK content version 19.2.
   See detailed changes [here](https://github.com/mitre/cti/releases/tag/ATT%26CK-v19.2).
