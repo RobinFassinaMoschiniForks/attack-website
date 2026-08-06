@@ -8,7 +8,7 @@ This file is guidance for coding agents working in `attack-website`.
 - There was no existing `AGENTS.md` to preserve.
 - No Cursor rules were found in `.cursor/rules/` or `.cursorrules`.
 - No Copilot instructions were found in `.github/copilot-instructions.md`.
-- Primary human docs are `DEVELOPMENT.md`, `README.md`, `test/README.md`, and `CONTRIBUTING.md`.
+- Primary human docs are `docs/DEVELOPMENT.md`, `README.md`, `test/README.md`, and `docs/CONTRIBUTING.md`.
 
 ## Repo Shape
 
@@ -30,7 +30,7 @@ This file is guidance for coding agents working in `attack-website`.
 - Docker is the preferred way to validate the final static output in an Nginx-like environment.
 - CI currently uses Python `3.13` and Node `18.x` in `.github/workflows/gh-pages.yml`.
 - Prefer CI versions when reproducing CI behavior; Docker and development docs may reference older base images.
-- Production-like builds may depend on environment variables from `.github/workflows/gh-pages.yml`, including `GOOGLE_ANALYTICS`, `GOOGLE_SITE_VERIFICATION`, `INCLUDE_OSANO`, and `PELICAN_SITEURL`.
+- Production-like builds may depend on environment variables from `.github/workflows/gh-pages.yml`, including `ATTACK_WEBSITE_GOOGLE_ANALYTICS`, `ATTACK_WEBSITE_GOOGLE_SITE_VERIFICATION`, `ATTACK_WEBSITE_INCLUDE_OSANO`, and `PELICAN_SITEURL`.
 
 ## High-Value Commands
 
@@ -46,7 +46,7 @@ Run commands from the repo root unless a subdirectory is called out.
 
 ### Build
 
-- Main website build: `uv run python update-attack.py --attack-brand --extras --no-test-exitstatus`
+- Main website build: `uv run python update-attack.py --attack-brand --all-extras --no-test-exitstatus`
 - Search bundle: `cd attack-search && npm run build`
 - Search dev bundle: `cd attack-search && npm run build:dev`
 - Copy built search bundle into site output: `cd attack-search && npm run copy`
@@ -55,7 +55,7 @@ Run commands from the repo root unless a subdirectory is called out.
 
 ### Local Validation
 
-- Full local site validation follows `DEVELOPMENT.md` and `test/README.md`.
+- Full local site validation follows `docs/DEVELOPMENT.md` and `test/README.md`.
 - Build site output first, then serve `output/` through the Docker test image.
 - Test container build: `cd test && docker build -t attack-website-test .`
 - Test container run: `cd test && docker run -p 80:80 -v $(pwd)/../output:/workspace attack-website-test`
@@ -77,7 +77,7 @@ Run commands from the repo root unless a subdirectory is called out.
 - Alternate single Jest file: `cd attack-search && npx jest __tests__/search-service.test.js`
 - Main Python-driven site tests run through the build script, not `pytest`.
 - Run specific site test categories: `uv run python update-attack.py -m tests -t size`
-- Multiple site test categories: `uv run python update-attack.py -m tests -t links external_links citations`
+- Multiple site test categories: `uv run python update-attack.py -m tests -t links -t external_links -t citations`
 
 ### Important Command Notes
 
@@ -91,7 +91,7 @@ Run commands from the repo root unless a subdirectory is called out.
 
 - Follow existing file-local conventions before applying generic preferences.
 - Treat `pyproject.toml`, `attack-search/.eslintrc`, and `attack-style/.stylelintrc.json` as authoritative style configs.
-- Treat `DEVELOPMENT.md` and `.github/workflows/gh-pages.yml` as authoritative for build workflow.
+- Treat `docs/DEVELOPMENT.md` and `.github/workflows/gh-pages.yml` as authoritative for build workflow.
 - In templates, respect comments that mark generated files or source-of-truth files.
 - Example: `attack-theme/templates/general/base-template.html` explicitly says to edit `base-template.html`, not generated `base.html`.
 
@@ -186,7 +186,7 @@ Run commands from the repo root unless a subdirectory is called out.
 
 ## Git And Contribution Notes
 
-- Pull requests should target the `develop` branch per `CONTRIBUTING.md`.
+- Pull requests should target the `develop` branch per `docs/CONTRIBUTING.md`.
 - The PR template expects a reviewer and a `CHANGELOG.md` update when appropriate.
 - The website version is configured in `modules/site_config.py`; keep it aligned with release tags and docs.
 - Do not assume `master` is the integration branch just because GitHub Pages deploys from it.

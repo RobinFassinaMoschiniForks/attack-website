@@ -9,7 +9,7 @@ import modules
 load_dotenv()
 
 attack_version = ""
-website_version = "4.4.3"
+website_version = "5.0.0"
 
 # Read versions file for ATT&CK version
 with open("data/versions.json", "r", encoding="utf8") as f:
@@ -22,17 +22,17 @@ if attack_version.startswith("v"):
 
 # Domains for stix objects
 STIX_LOCATION_ENTERPRISE = os.getenv(
-    "STIX_LOCATION_ENTERPRISE",
+    "ATTACK_WEBSITE_STIX_LOCATION_ENTERPRISE",
     "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json",
 )
 STIX_LOCATION_MOBILE = os.getenv(
-    "STIX_LOCATION_MOBILE", "https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json"
+    "ATTACK_WEBSITE_STIX_LOCATION_MOBILE", "https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json"
 )
 STIX_LOCATION_ICS = os.getenv(
-    "STIX_LOCATION_ICS", "https://raw.githubusercontent.com/mitre/cti/master/ics-attack/ics-attack.json"
+    "ATTACK_WEBSITE_STIX_LOCATION_ICS", "https://raw.githubusercontent.com/mitre/cti/master/ics-attack/ics-attack.json"
 )
 STIX_LOCATION_PRE = os.getenv(
-    "STIX_LOCATION_PRE", "https://raw.githubusercontent.com/mitre/cti/master/pre-attack/pre-attack.json"
+    "ATTACK_WEBSITE_STIX_LOCATION_PRE", "https://raw.githubusercontent.com/mitre/cti/master/pre-attack/pre-attack.json"
 )
 domains = [
     {"name": "enterprise-attack", "location": STIX_LOCATION_ENTERPRISE, "alias": "Enterprise", "deprecated": False},
@@ -43,12 +43,11 @@ domains = [
 
 # Directory for attack version archives
 default_archive_dir = "attack-version-archives"
-ATTACK_VERSION_ARCHIVES = os.getenv("ATTACK_VERSION_ARCHIVES", default_archive_dir)
+ATTACK_VERSION_ARCHIVES = os.getenv("ATTACK_WEBSITE_ATTACK_VERSION_ARCHIVES", default_archive_dir)
 
-# banner for the website
+# Banner message for the website. ATTACK_WEBSITE_BANNER_ENABLED is parsed by update-attack.py.
 default_banner_message = "This is a custom instance of the MITRE ATT&CK Website. The official website can be found at <a href='https://attack.mitre.org'>attack.mitre.org</a>."
-BANNER_ENABLED = os.getenv("BANNER_ENABLED", True)
-BANNER_MESSAGE = os.getenv("BANNER_MESSAGE", default_banner_message)
+BANNER_MESSAGE = os.getenv("ATTACK_WEBSITE_BANNER_MESSAGE", default_banner_message)
 
 # Args for modules to use if needed
 args = []
@@ -199,10 +198,8 @@ navigator_version = "5.3.2"
 test_report_directory = "reports"
 
 # Workbench credentials to use if pulling STIX from ATT&CK Workbench version 1.2.0 or later
-WORKBENCH_USER = os.getenv("WORKBENCH_USER")
-WORKBENCH_API_KEY = os.getenv("WORKBENCH_API_KEY")
+WORKBENCH_USER = os.getenv("ATTACK_WEBSITE_WORKBENCH_USER")
+WORKBENCH_API_KEY = os.getenv("ATTACK_WEBSITE_WORKBENCH_API_KEY")
 
-GOOGLE_ANALYTICS = os.getenv("GOOGLE_ANALYTICS")
-GOOGLE_SITE_VERIFICATION = os.getenv("GOOGLE_SITE_VERIFICATION")
-
-INCLUDE_OSANO = os.getenv("INCLUDE_OSANO")
+GOOGLE_ANALYTICS = os.getenv("ATTACK_WEBSITE_GOOGLE_ANALYTICS")
+GOOGLE_SITE_VERIFICATION = os.getenv("ATTACK_WEBSITE_GOOGLE_SITE_VERIFICATION")

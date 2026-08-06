@@ -1,6 +1,12 @@
 Dockerfile
+.git/
 
-__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 .vscode/
 
 content/
@@ -10,4 +16,5 @@ attack-releases/
 
 venv/
 .venv/
+**/node_modules/
 .env

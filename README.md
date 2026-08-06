@@ -14,13 +14,15 @@ If you find errors or typos in the site content, let us know by sending an email
 
 ## Development
 
-Check out our [developer guide](DEVELOPMENT.md) if you are interested in extending the style, content, or functionality of this site.
+Check out our [developer guide](docs/DEVELOPMENT.md) if you are interested in extending the style, content, or functionality of this site.
 It includes instructions on setting up a local version of the site, and workflows for building and running the site using Docker or locally.
 
 We also have the additional following guides:
 
 * A [deployment guide](./test/README.md) for setting up our testing environment
 * A [release guide](./docs/RELEASE.md) for the release process
+* A [contribution guide](./docs/CONTRIBUTING.md)
+* A [customization guide](./docs/CUSTOMIZING.md)
 
 ## Related MITRE Work
 

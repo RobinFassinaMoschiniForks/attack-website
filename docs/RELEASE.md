@@ -40,7 +40,7 @@ If you are only updating the banner and nothing else, follow these steps.
 
 5. Build the website locally to do one final test that it looks correct
 
-    * e.g. `python update-attack.py --attack-brand --extras --no-test-exitstatus`
+    * e.g. `python update-attack.py --attack-brand --all-extras --no-test-exitstatus`
     * Look in the generated `reports/broken-links-report.txt` for broken links.
       Any broken links that start with `/versions/v*` can be ignored.
 
@@ -96,8 +96,8 @@ Consult these sections as needed for step 4 in the above list.
   * Add a bullet point to the Features section in the following format
 
   ```markdown
-  * Release [ATT&CK content version X.Y](https://github.com/mitre/cti/releases/tag/ATT%26CK-vX.Y).
-    See the release notes [here](https://attack.mitre.org/resources/updates/updates-<month>-<year>/).
+  * Release ATT&CK content version X.Y.
+    See detailed changes [here](https://github.com/mitre/cti/releases/tag/ATT%26CK-vX.Y).
   ```
 
 * Update the `layer_version` and `navigator_version` in `modules/site_config.py` if navigator version or navigator layer version has been updated.<br>

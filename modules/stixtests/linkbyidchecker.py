@@ -23,12 +23,14 @@ def linkbyid_check():
     stix_types_that_should_have_attack_ids = (
         # STIX 2.0
         stix2.v20.sdo.AttackPattern,
+        stix2.v20.sdo.Campaign,
         stix2.v20.sdo.CourseOfAction,
         stix2.v20.sdo.IntrusionSet,
         stix2.v20.sdo.Malware,
         stix2.v20.sdo.Tool,
         # STIX 2.1
         stix2.v21.sdo.AttackPattern,
+        stix2.v21.sdo.Campaign,
         stix2.v21.sdo.CourseOfAction,
         stix2.v21.sdo.IntrusionSet,
         stix2.v21.sdo.Malware,

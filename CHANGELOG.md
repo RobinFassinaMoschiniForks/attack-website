@@ -1,12 +1,34 @@
 # Website Changelog
 
+## v5.0.0 (2026-08-06)
+
+* Release ATT&CK content version 19.2.
+  See detailed changes [here](https://github.com/mitre/cti/releases/tag/ATT%26CK-v19.2).
+
+### Breaking Changes
+
+* Migrate the `update-attack.py` command-line interface from argparse to Typer.
+* Require `--modules`, `--extras`, and `--test` to be repeated for each selected value.
+* Replace the value-less `--extras` behavior with the explicit `--all-extras` flag.
+
+  | Before v5.0.0 | v5.0.0 and later |
+  | --- | --- |
+  | `-m clean techniques website_build` | `-m clean -m techniques -m website_build` |
+  | `-t size links citations` | `-t size -t links -t citations` |
+  | `-e resources blog` | `-e resources -e blog` |
+  | `--extras` | `--all-extras` |
+
+### Upgrade notes
+
+* Project-owned build environment variables now use the `ATTACK_WEBSITE_` prefix, including `ATTACK_WEBSITE_ATTACK_BRAND`, `ATTACK_WEBSITE_BANNER_ENABLED`, `ATTACK_WEBSITE_INCLUDE_OSANO`, `ATTACK_WEBSITE_TEST_EXITSTATUS`, and `ATTACK_WEBSITE_UPDATE_ATTACK_ALL_EXTRAS`. Legacy unprefixed names are no longer accepted; `PELICAN_*` variables remain unchanged because Pelican consumes them directly.
+
 ## v4.4.3 (2026-05-12)
 
 ### Features
 
 * Release ATT&CK content version 19.1.
   See detailed changes [here](https://github.com/mitre/cti/releases/tag/ATT%26CK-v19.1).
-  
+
 ## v4.4.2 (2026-04-28)
 
 ### Features

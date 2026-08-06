@@ -20,7 +20,9 @@ The web application is composed of two modules: the Pelican content, and the ATT
 1. Generate the static web pages (i.e., the Pelican content) by running the following command from the root of the project:
 
     ```shell
-    python3 update-attack.py --attack-brand --extras --no-test-exitstatus
+    python3 update-attack.py --attack-brand \
+        --all-extras \
+        --no-test-exitstatus
     ```
 
     The static web content will be written to a folder called "output".
