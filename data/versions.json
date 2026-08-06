@@ -2,7 +2,7 @@
     "current": {
         "name": "v19.2",
         "date_start": "April 28, 2026",
-        "changelog": "updates-july-2026",
+        "changelog": "updates-august-2026",
         "cti_url": "https://github.com/mitre/cti/releases/tag/ATT%26CK-v19.2"
     },
     "previous": [
