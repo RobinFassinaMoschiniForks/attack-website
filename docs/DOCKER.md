@@ -59,7 +59,7 @@ docker build --build-arg ATTACK_WEBSITE_TEST_EXITSTATUS=false -t attack-website 
 
 This setting affects site-test failures only. Other `update-attack.py` failures still stop the Docker build.
 
-## Workbench credentials and trust setup
+## Workbench credentials
 
 Pass the Workbench API key through a BuildKit secret; do not put it in a build argument or image environment variable. Supply `ATTACK_WEBSITE_WORKBENCH_USER` as a build argument when using the secret:
 
